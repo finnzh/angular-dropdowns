@@ -91,10 +91,25 @@
             $element[0].blur(); //trigger blur to clear active
           };
 
+          $element.bind('blur', function (event) {
+            event.stopPropagation();
+            DropdownService.disableActive($element);
+            DropdownService.fired($element);
+          });
+
+          $element.bind('focus', function (event) {
+            event.stopPropagation();
+            if (!$scope.dropdownDisabled && !DropdownService.isFired($element)) {
+              DropdownService.enableActive($element);
+              DropdownService.fired($element);
+            }
+          });
+          
           $element.bind('click', function (event) {
             event.stopPropagation();
-            if (!$scope.dropdownDisabled) {
+            if (!$scope.dropdownDisabled && !DropdownService.isFired($element)) {
               DropdownService.toggleActive($element);
+              DropdownService.fired($element);
             }
           });
 
@@ -234,6 +249,20 @@
         }
       };
 
+      service.enableActive = function (ddEl) {
+        angular.forEach(_dropdowns, function (el) {
+          if (el !== ddEl) {
+            el.removeClass('active');
+          }
+        });
+
+        ddEl.addClass('active');
+      };
+
+      service.disableActive = function (ddEl) {
+        ddEl.removeClass('active');
+      };
+
       service.toggleActive = function (ddEl) {
         angular.forEach(_dropdowns, function (el) {
           if (el !== ddEl) {
@@ -252,6 +281,18 @@
 
       service.isActive = function (ddEl) {
         return ddEl.hasClass('active');
+      };
+      
+      service.fired = function (ddEl) {
+        ddEl.addClass('fired');
+        
+        setTimeout(function() {
+          $(ddEl).removeClass('fired');
+        }, 100);
+      };
+
+      service.isFired = function (ddEl) {
+        return ddEl.hasClass('fired');
       };
 
       return service;
